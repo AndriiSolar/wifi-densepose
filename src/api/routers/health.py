@@ -54,9 +54,10 @@ async def health_check(request: Request):
     """Comprehensive system health check."""
     try:
         # Get services from app state
-        hardware_service = getattr(request.app.state, 'hardware_service', None)
-        pose_service = getattr(request.app.state, 'pose_service', None)
-        stream_service = getattr(request.app.state, 'stream_service', None)
+        orchestrator = getattr(request.app.state, 'orchestrator', None)
+        hardware_service = orchestrator.hardware_service if orchestrator else None
+        pose_service = orchestrator.pose_service if orchestrator else None
+        stream_service = orchestrator.stream_service if orchestrator else None
         
         timestamp = datetime.utcnow()
         components = {}

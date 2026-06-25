@@ -19,7 +19,7 @@ def get_version():
     """Get version from src/__init__.py"""
     version_file = here / "src" / "__init__.py"
     if version_file.exists():
-        with open(version_file, 'r') as f:
+        with open(version_file, 'r', encoding='utf-8') as f:
             for line in f:
                 if line.startswith('__version__'):
                     return line.split('=')[1].strip().strip('"').strip("'")
@@ -39,7 +39,7 @@ def get_requirements():
     """Get requirements from requirements.txt or use defaults"""
     requirements_file = here / "requirements.txt"
     if requirements_file.exists():
-        with open(requirements_file, 'r') as f:
+        with open(requirements_file, 'r', encoding='utf-8') as f:
             return [line.strip() for line in f if line.strip() and not line.startswith('#')]
     
     # Default requirements (should match pyproject.toml)

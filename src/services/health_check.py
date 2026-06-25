@@ -49,8 +49,9 @@ class ServiceHealth:
 class HealthCheckService:
     """Service for monitoring application health."""
     
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, orchestrator=None):
         self.settings = settings
+        self.orchestrator = orchestrator
         self._services: Dict[str, ServiceHealth] = {}
         self._start_time = time.time()
         self._initialized = False
@@ -243,13 +244,10 @@ class HealthCheckService:
         start_time = time.time()
         
         try:
-            # Import here to avoid circular imports
-            from src.api.dependencies import get_hardware_service
+            hardware_service = self.orchestrator.hardware_service if self.orchestrator else None
             
-            hardware_service = get_hardware_service()
-            
-            if hasattr(hardware_service, 'get_status'):
-                status_info = await hardware_service.get_status()
+            if hardware_service and hasattr(hardware_service, 'health_check'):
+                status_info = await hardware_service.health_check()
                 
                 if status_info.get("status") == "healthy":
                     status = HealthStatus.HEALTHY
@@ -284,13 +282,10 @@ class HealthCheckService:
         start_time = time.time()
         
         try:
-            # Import here to avoid circular imports
-            from src.api.dependencies import get_pose_service
+            pose_service = self.orchestrator.pose_service if self.orchestrator else None
             
-            pose_service = get_pose_service()
-            
-            if hasattr(pose_service, 'get_status'):
-                status_info = await pose_service.get_status()
+            if pose_service and hasattr(pose_service, 'health_check'):
+                status_info = await pose_service.health_check()
                 
                 if status_info.get("status") == "healthy":
                     status = HealthStatus.HEALTHY
@@ -325,13 +320,10 @@ class HealthCheckService:
         start_time = time.time()
         
         try:
-            # Import here to avoid circular imports
-            from src.api.dependencies import get_stream_service
+            stream_service = self.orchestrator.stream_service if self.orchestrator else None
             
-            stream_service = get_stream_service()
-            
-            if hasattr(stream_service, 'get_status'):
-                status_info = await stream_service.get_status()
+            if stream_service and hasattr(stream_service, 'health_check'):
+                status_info = await stream_service.health_check()
                 
                 if status_info.get("status") == "healthy":
                     status = HealthStatus.HEALTHY

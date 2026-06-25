@@ -10,11 +10,10 @@ from contextlib import asynccontextmanager
 from src.config.settings import Settings
 from src.services.health_check import HealthCheckService
 from src.services.metrics import MetricsService
-from src.api.dependencies import (
-    get_hardware_service,
-    get_pose_service,
-    get_stream_service
-)
+from src.services.hardware_service import HardwareService
+from src.services.pose_service import PoseService
+from src.services.stream_service import StreamService
+from src.config.domains import get_domain_config
 from src.api.websocket.connection_manager import connection_manager
 from src.api.websocket.pose_stream import PoseStreamHandler
 
@@ -32,7 +31,7 @@ class ServiceOrchestrator:
         self._started = False
         
         # Core services
-        self.health_service = HealthCheckService(settings)
+        self.health_service = HealthCheckService(settings, self)
         self.metrics_service = MetricsService(settings)
         
         # Application services (will be initialized later)
@@ -79,18 +78,20 @@ class ServiceOrchestrator:
     async def _initialize_application_services(self):
         """Initialize application-specific services."""
         try:
+            domain_config = get_domain_config()
+            
             # Initialize hardware service
-            self.hardware_service = get_hardware_service()
+            self.hardware_service = HardwareService(settings=self.settings, domain_config=domain_config)
             await self.hardware_service.initialize()
             logger.info("Hardware service initialized")
             
             # Initialize pose service
-            self.pose_service = get_pose_service()
+            self.pose_service = PoseService(settings=self.settings, domain_config=domain_config)
             await self.pose_service.initialize()
             logger.info("Pose service initialized")
             
             # Initialize stream service
-            self.stream_service = get_stream_service()
+            self.stream_service = StreamService(settings=self.settings, domain_config=domain_config)
             await self.stream_service.initialize()
             logger.info("Stream service initialized")
             

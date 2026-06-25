@@ -167,7 +167,8 @@ class PoseStreamHandler:
                 zone_ids=[pose_data.zone_id]
             )
             
-            logger.info(f"✅ Broadcasted pose data for zone {pose_data.zone_id} to {sent_count} clients")
+            if sent_count > 0:
+                logger.info(f"Successfully broadcasted pose data for zone {pose_data.zone_id} to {sent_count} clients")
         
         except Exception as e:
             logger.error(f"Error broadcasting pose data: {e}")

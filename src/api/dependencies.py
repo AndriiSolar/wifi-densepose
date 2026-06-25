@@ -22,9 +22,12 @@ security = HTTPBearer(auto_error=False)
 
 
 # Service dependencies
-@lru_cache()
-def get_pose_service() -> PoseService:
+def get_pose_service(request: Request) -> PoseService:
     """Get pose service instance."""
+    orchestrator = getattr(request.app.state, 'orchestrator', None)
+    if orchestrator and orchestrator.pose_service:
+        return orchestrator.pose_service
+        
     settings = get_settings()
     domain_config = get_domain_config()
     
@@ -34,9 +37,12 @@ def get_pose_service() -> PoseService:
     )
 
 
-@lru_cache()
-def get_stream_service() -> StreamService:
+def get_stream_service(request: Request) -> StreamService:
     """Get stream service instance."""
+    orchestrator = getattr(request.app.state, 'orchestrator', None)
+    if orchestrator and orchestrator.stream_service:
+        return orchestrator.stream_service
+        
     settings = get_settings()
     domain_config = get_domain_config()
     
@@ -46,9 +52,12 @@ def get_stream_service() -> StreamService:
     )
 
 
-@lru_cache()
-def get_hardware_service() -> HardwareService:
+def get_hardware_service(request: Request) -> HardwareService:
     """Get hardware service instance."""
+    orchestrator = getattr(request.app.state, 'orchestrator', None)
+    if orchestrator and orchestrator.hardware_service:
+        return orchestrator.hardware_service
+        
     settings = get_settings()
     domain_config = get_domain_config()
     
@@ -244,12 +253,13 @@ async def check_service_health(
 ) -> bool:
     """Check if a service is healthy."""
     try:
+        orchestrator = getattr(request.app.state, 'orchestrator', None)
         if service_name == "pose":
-            service = getattr(request.app.state, 'pose_service', None)
+            service = orchestrator.pose_service if orchestrator else None
         elif service_name == "stream":
-            service = getattr(request.app.state, 'stream_service', None)
+            service = orchestrator.stream_service if orchestrator else None
         elif service_name == "hardware":
-            service = getattr(request.app.state, 'hardware_service', None)
+            service = orchestrator.hardware_service if orchestrator else None
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
